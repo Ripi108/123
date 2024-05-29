@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПИ-131 Виниченко</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/script.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #container {
+            margin: 50px auto;
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+        
+        #falling-object {
+            width: 50px;
+            height: 50px;
+            background-color: rgb(0, 255, 76);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+        }
+        
+        #falling-object-container {
+            position: relative;
+            height: 300px;
+            border: 2px solid #333;
+            margin: 20px auto;
+            overflow: hidden;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            #container {
+                margin: 20px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h2>Падение тела</h2>
+        <label for="height">Выберите высоту падения (м):</label>
+        <select id="height">
+            <option value="10">10 м</option>
+            <option value="50">50 м</option>
+            <option value="100">100 м</option>
+            <option value="200">200 м</option>
+            <option value="500">500 м</option>
+            <option value="1000">1000 м</option>
+        </select>
+        <br><br>
+        <button onclick="startFall()">Начать падение</button>
+        <br><br>
+        <div id="falling-object-container">
+            <div id="falling-object"></div>
+        </div>
+        <br><br>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Высота (м)</th>
+                    <th>Время всего падения (с)</th>
+                    <th>Время первого метра (с)</th>
+                    <th>Время последнего метра (с)</th>
+                </tr>
+            </thead>
+            <tbody id="results"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function calculateFallTime(height) {
+            const g = 9.8;
+            const totalTime = Math.sqrt(2 * height / g);
+            const firstMeterTime = Math.sqrt(2 * 1 / g);
+            const lastMeterTime = Math.sqrt(2 * (height - 1) / g);
+            return { totalTime, firstMeterTime, lastMeterTime };
+        }
+    
+        function startFall() {
+            const height = parseInt(document.getElementById("height").value);
+            const times = calculateFallTime(height);
+    
+            const tableBody = document.getElementById("results");
+            tableBody.innerHTML = "";
+            const newRow = tableBody.insertRow();
+            newRow.insertCell().textContent = height;
+            newRow.insertCell().textContent = times.totalTime.toFixed(2);
+            newRow.insertCell().textContent = times.firstMeterTime.toFixed(2);
+            newRow.insertCell().textContent = times.lastMeterTime.toFixed(2);
+    
+            const object = document.getElementById("falling-object");
+            const container = document.getElementById("falling-object-container");
+            const containerHeight = container.clientHeight;
+            const objectHeight = object.clientHeight;
+            
+            object.style.top = `-${objectHeight}px`;
+    
+            const fallSpeed = containerHeight / times.totalTime;
+            const fallDuration = times.totalTime * 1000;
+    
+            object.style.transition = `top ${fallDuration}ms linear`;
+            object.style.top = `${containerHeight}px`;
+    
+            
+            const checkBoundaryInterval = setInterval(() => {
+                const objectRect = object.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+    
+                if (objectRect.bottom >= containerRect.bottom) {
+                    object.style.transition = "none";
+                    object.style.top = `${containerHeight - objectHeight}px`;
+                    clearInterval(checkBoundaryInterval); 
+                }
+            }, 10); 
+    
+            setTimeout(() => {
+                object.style.top = `-${objectHeight}px`;
+                clearInterval(checkBoundaryInterval); 
+            }, fallDuration + 10);
+        }
+    </script>
+</body>
+
+</html>
